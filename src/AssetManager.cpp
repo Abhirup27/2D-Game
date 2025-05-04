@@ -9,8 +9,10 @@
 #include <memory>
 #include <string_view>
 
-namespace Game {
+namespace Engine {
+
 AssetManager *AssetManager::s_instance = nullptr;
+
 bool AssetManager::LoadTexture(const std::string &name,
                                const std::string &filename) {
   std::unique_ptr<sf::Texture> texture = std::make_unique<sf::Texture>();
@@ -118,4 +120,4 @@ void AssetManager::RemoveSound(const std::string &name) {
   m_soundBuffers.erase(name);
 }
 
-} // namespace Game
+} // namespace Engine

@@ -5,7 +5,6 @@
 #include "SFML/Graphics/Sprite.hpp"
 #include "SFML/Graphics/Texture.hpp"
 #include "SFML/Graphics/View.hpp"
-#include "SFML/System/Angle.hpp"
 #include <SFML/Graphics.hpp>
 
 #pragma region imgui
@@ -15,9 +14,13 @@
 #pragma endregion
 
 enum directions { down, right, up, left };
-int main() {
-  Game::AssetManager *assets = Game::AssetManager::GetInstance();
 
+sf::Font g_font = Engine::AssetManager::GetInstance()->GetFont("fallback");
+sf::Texture g_texture =
+    Engine::AssetManager::GetInstance()->GetTexture("debug");
+
+int main() {
+  Engine::AssetManager *assets = Engine::AssetManager::GetInstance();
   unsigned int width{640U};
   unsigned int height{480U};
 
@@ -30,13 +33,9 @@ int main() {
   window->setView(*view);
 
   window->setFramerateLimit(60U);
-  sf::Texture texture;
-  assets->LoadFont("main", "Kurland-Regular.ttf");
-  sf::Font defFont = assets->GetFont("fallback");
 
-  Game::StateMachine stateMachine;
-  stateMachine.AddState(
-      "menu", std::make_unique<Menu>(stateMachine, defFont, texture), false);
+  Engine::StateMachine stateMachine;
+  stateMachine.AddState("menu", std::make_unique<Menu>(stateMachine), false);
   sf::Clock clock;
   while (window->isOpen()) {
 
@@ -57,7 +56,7 @@ int main() {
     }
     window->display();
   }
-  Game::AssetManager::Cleanup();
+  Engine::AssetManager::Cleanup();
   delete window;
   return 0;
 }

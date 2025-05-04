@@ -1,5 +1,13 @@
 build/
-compile_commands.json
 .clangd
-
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/Makefile
+**/*.make
+**/CMakeScripts/
+**/compile_commands.json
+**/*CTestTestfile.cmake
+_deps/
+**/install_manifest.txt
 

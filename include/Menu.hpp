@@ -7,17 +7,20 @@
 #include "SFML/System/Vector2.hpp"
 #include "State.hpp"
 #include "StateMachine.hpp"
-class Menu : public Game::State {
+
+extern sf::Texture g_texture;
+extern sf::Font g_font;
+class Menu : public Engine::State {
 private:
-  Game::StateMachine &m_stateMachine;
+  Engine::StateMachine &m_stateMachine;
   sf::Text m_title;
   sf::Text m_playButton;
   sf::Text m_exitButton;
   sf::Sprite m_backgroundSprite;
 
 public:
-  Menu(Game::StateMachine &stateMachine, sf::Font &defaultFont,
-       sf::Texture &defaultTexture)
+  Menu(Engine::StateMachine &stateMachine, sf::Font &defaultFont = g_font,
+       sf::Texture &defaultTexture = g_texture)
       : m_stateMachine(stateMachine), m_title(defaultFont),
         m_exitButton(defaultFont), m_playButton(defaultFont),
         m_backgroundSprite(defaultTexture) {}

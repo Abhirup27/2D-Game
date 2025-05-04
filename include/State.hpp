@@ -4,7 +4,7 @@
 #include "SFML/Window/Event.hpp"
 #include <SFML/Graphics.hpp>
 
-namespace Game {
+namespace Engine {
 class State {
 
 public:
@@ -16,6 +16,6 @@ public:
   virtual void Update(float deltaTime) = 0;
   virtual void Draw(sf::RenderWindow &window, sf::View &view) = 0;
   virtual void Pause() {}
-  virtual void Resumse() {}
+  virtual void Resume() {}
 };
-} // namespace Game
+} // namespace Engine

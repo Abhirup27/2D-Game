@@ -1,4 +1,5 @@
 #include "AssetManager.hpp"
+#include "GameLoop.hpp"
 #include "Menu.hpp"
 #include "SFML/Graphics/Color.hpp"
 #include "SFML/Graphics/Rect.hpp"
@@ -7,48 +8,61 @@
 #include "SFML/System/Vector2.hpp"
 #include "SFML/Window/Event.hpp"
 #include <StateMachine.hpp>
-#include <iostream>
 
-namespace Game {
+namespace Engine {
 
 void StateMachine::AddState(const std::string &name, StateRef newState,
                             bool isReplacing) {
   m_isAdding = true;
   m_isReplacing = isReplacing;
-  m_pendingState = newState.get();
-  m_states[name] = std::move(newState);
+  m_newStateName = name;
+  m_pendingState = std::move(newState);
 }
 void StateMachine::RemoveState(const std::string &name) {
   m_isRemoving = true;
-
-  if (m_currentState == m_states[name].get()) {
-    m_currentState = nullptr;
-  }
-  m_states.erase(name);
+  m_stateToRemove = name;
 }
 void StateMachine::ProcessStateChanges() {
-  if (m_isRemoving && m_currentState) {
-    m_currentState = nullptr;
+  // Handle state removal
+  if (m_isRemoving) {
+    auto it = m_states.find(m_stateToRemove);
+    if (it != m_states.end()) {
+      // Check if the state to remove is the current state
+      if (m_currentState == it->second.get()) {
+        m_currentState = nullptr;
+      }
+      m_states.erase(it);
+    }
     m_isRemoving = false;
   }
+
+  // Handle state addition
   if (m_isAdding) {
     if (m_currentState && !m_isReplacing) {
       m_currentState->Pause();
     }
-    if (m_isReplacing && m_currentState) {
+
+    if (m_isReplacing) {
+      // Clear all states if replacing
       m_currentState = nullptr;
+      m_states.clear();
     }
-    m_currentState = m_pendingState;
+
+    // Add the new state to m_states
+    StateRef &ref = m_states[m_newStateName] = std::move(m_pendingState);
+    m_currentState = ref.get();
     m_currentState->Init();
+
     m_isAdding = false;
   }
 }
+
 State *StateMachine::GetCurrentState() { return m_currentState; }
-} // namespace Game
+} // namespace Engine
 
 void Menu::Init() {
 
-  Game::AssetManager *assets = Game::AssetManager::GetInstance();
+  Engine::AssetManager *assets = Engine::AssetManager::GetInstance();
 
   if (!assets->HasFont("main")) {
     assets->LoadFont("main", "Kurland-Regular.ttf");
@@ -67,6 +81,9 @@ void Menu::Init() {
   m_title.setString("Game");
   m_title.setCharacterSize(48);
   m_title.setFillColor(sf::Color::White);
+  m_title.setOutlineThickness(5.0F);
+  m_title.setOutlineColor(sf::Color::Red);
+
   sf::FloatRect titleBounds = m_title.getLocalBounds();
   m_title.setOrigin({titleBounds.size.x / 2.0F, titleBounds.size.y / 2.0F});
   m_title.setPosition({640U / 2.0F, 150});
@@ -75,8 +92,6 @@ void Menu::Init() {
   m_playButton.setString("Play");
   m_playButton.setCharacterSize(32);
   m_playButton.setFillColor(sf::Color::White);
-  m_playButton.setOutlineThickness(10.0F);
-  m_playButton.setOutlineColor(sf::Color::Red);
   sf::FloatRect rc = m_playButton.getLocalBounds();
   m_playButton.setOrigin({rc.size.x / 2, rc.size.y / 2});
   m_playButton.setPosition({640U / 2.0F, 250});
@@ -119,9 +134,9 @@ void Menu::HandleInput(sf::RenderWindow &window, sf::View &view) {
                 {static_cast<float>(mousePos.x),
                  static_cast<float>(mousePos.y)})) {
 
-          // m_stateMachine.AddState("game",
-          // std::make_unique<GameState>(m_stateMachine), true);
-          m_stateMachine.RemoveState("menu");
+          m_stateMachine.AddState("game",
+                                  std::make_unique<Game>(m_stateMachine), true);
+          // m_stateMachine.RemoveState("menu");
 
         } else if (m_exitButton.getGlobalBounds().contains(
                        static_cast<sf::Vector2f>(mousePos))) {
@@ -142,28 +157,17 @@ void Menu::HandleResize(sf::RenderWindow &window, sf::View &view,
 
   // Position background at center
   m_backgroundSprite.setPosition(center);
-  // You might want to scale the background to fit the new window size
   float scaleX = size.x / 640.0F;
   float scaleY = size.y / 480.0F;
   m_backgroundSprite.setScale({scaleX, scaleY});
 
-  // Reposition title - keep it at top center
   m_title.setPosition({center.x, size.y * 0.3F});
-  // Center the title text
   sf::FloatRect titleBounds = m_title.getLocalBounds();
   m_title.setOrigin({titleBounds.size.x / 2.0F, titleBounds.size.y / 2.0F});
 
-  // Reposition play button - center
   m_playButton.setPosition({center.x, center.y});
 
-  // Reposition exit button - below play button
   m_exitButton.setPosition({center.x, center.y + 50.0F});
-  // Center the exit button text
   sf::FloatRect exitBounds = m_exitButton.getLocalBounds();
   m_exitButton.setOrigin({exitBounds.size.x / 2.0F, exitBounds.size.y / 2.0F});
-
-  std::cout << "Play button position: " << m_playButton.getPosition().x << ", "
-            << m_playButton.getPosition().y << '\n';
-  std::cout << "Play button bounds: "
-            << m_playButton.getGlobalBounds().position.x << '\n';
 }

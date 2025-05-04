@@ -5,17 +5,19 @@
 #include <memory>
 #include <string>
 
-namespace Game {
+namespace Engine {
 using StateRef = std::unique_ptr<State>;
 
 class StateMachine {
 private:
   std::map<std::string, StateRef> m_states;
   State *m_currentState;
-  State *m_pendingState;
+  StateRef m_pendingState;
   bool m_isReplacing;
   bool m_isAdding;
   bool m_isRemoving;
+  std::string m_stateToRemove;
+  std::string m_newStateName;
 
 public:
   StateMachine()
@@ -29,4 +31,4 @@ public:
   void ProcessStateChanges();
   State *GetCurrentState();
 };
-} // namespace Game
+} // namespace Engine

@@ -8,7 +8,7 @@
 #include <memory>
 #include <string_view>
 
-namespace Game {
+namespace Engine {
 class AssetManager {
 
 private:
@@ -23,6 +23,7 @@ public:
   static AssetManager *GetInstance() {
     if (s_instance == nullptr) {
       s_instance = new AssetManager();
+      s_instance->LoadTexture("debug", "g_texture.png");
     }
     return s_instance;
   }
@@ -52,4 +53,4 @@ public:
   bool HasSound(const std::string &name) const;
   void RemoveSound(const std::string &name);
 };
-} // namespace Game
+} // namespace Engine
